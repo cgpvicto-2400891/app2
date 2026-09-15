@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apps Mobiles 2 — Kotlin + Jetpack Compose</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --paper:#F3F4F7;
+  --panel:#FFFFFF;
+  --ink:#171A21;
+  --ink-soft:#565D6D;
+  --line:#DFE2E8;
+  --kotlin:#7B5CFA;
+  --kotlin-dim:#EFEBFF;
+  --amber:#D98A1B;
+  --amber-dim:#FBF0DD;
+  --teal:#1E8F72;
+  --teal-dim:#E3F5EF;
+  --red:#C4453A;
+  --red-dim:#FBEAE8;
+  --code-bg:#171A21;
+  --code-ink:#E7E9F0;
+  --radius:6px;
+  --sidebar-w:248px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Manrope',sans-serif; font-weight:800; margin:0 0 .4em 0; letter-spacing:-.01em;}
+code,pre,.mono{font-family:'JetBrains Mono',monospace;}
+a{color:inherit;}
+button{font-family:inherit; cursor:pointer;}
+::selection{background:var(--kotlin-dim);}
+
+/* ============ LAYOUT SHELL ============ */
+.shell{display:flex; min-height:100vh;}
+.sidebar{
+  width:var(--sidebar-w); flex-shrink:0;
+  background:var(--panel); border-right:1px solid var(--line);
+  padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+.brand{display:flex; align-items:center; gap:10px; padding:0 6px 20px 6px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+.brand-mark{width:30px; height:30px; border-radius:7px; background:var(--kotlin); display:flex; align-items:center; justify-content:center; color:#fff; font-family:'JetBrains Mono'; font-weight:700; font-size:13px;}
+.brand-text{font-family:'Manrope'; font-weight:800; font-size:14.5px; line-height:1.2;}
+.brand-text span{display:block; font-family:'Inter'; font-weight:500; color:var(--ink-soft); font-size:11.5px;}
+
+.navgroup{margin-bottom:18px;}
+.navgroup-label{font-size:11px; color:var(--ink-soft); padding:0 10px 6px 10px; font-weight:600;}
+.navitem{
+  display:flex; align-items:center; gap:9px;
+  padding:8px 10px; border-radius:var(--radius); font-size:13.6px; font-weight:500;
+  color:var(--ink-soft); text-decoration:none; margin-bottom:1px; border:none; background:none; width:100%; text-align:left;
+}
+.navitem svg{flex-shrink:0; opacity:.75;}
+.navitem:hover{background:var(--paper); color:var(--ink);}
+.navitem.active{background:var(--kotlin-dim); color:var(--kotlin); font-weight:700;}
+.navitem.active svg{opacity:1;}
+
+main{flex:1; min-width:0;}
+.topbar{
+  position:sticky; top:0; z-index:5; background:rgba(243,244,247,.92); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); padding:14px 32px; display:flex; gap:14px; align-items:center;
+}
+.searchbox{
+  flex:1; max-width:480px; display:flex; align-items:center; gap:8px;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:8px 12px;
+}
+.searchbox input{border:none; outline:none; background:none; flex:1; font-family:inherit; font-size:13.5px; color:var(--ink);}
+.searchbox svg{opacity:.5; flex-shrink:0;}
+.content{padding:34px 40px 80px 40px; max-width:920px;}
+
+/* ============ SHARED WIDGETS ============ */
+.eyebrow-free-title{margin-bottom:22px;}
+.sub{color:var(--ink-soft); font-size:15px; margin-bottom:6px;}
+
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media(max-width:760px){.grid2{grid-template-columns:1fr;}}
+
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 20px;
+}
+.course-card{border-left:3px solid var(--kotlin);}
+.course-card h4{font-size:15.5px; margin-bottom:2px;}
+.course-card .meta{font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;}
+.bar{height:6px; background:var(--line); border-radius:99px; overflow:hidden; margin-bottom:10px;}
+.bar > i{display:block; height:100%; background:var(--kotlin); border-radius:99px;}
+.go-btn{
+  border:1px solid var(--kotlin); color:var(--kotlin); background:none; padding:6px 13px;
+  border-radius:var(--radius); font-size:12.8px; font-weight:600;
+}
+.go-btn:hover{background:var(--kotlin); color:#fff;}
+
+.badge{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:3px 9px; border-radius:99px;}
+.badge.beg{background:var(--teal-dim); color:var(--teal);}
+.badge.mid{background:var(--amber-dim); color:var(--amber);}
+.badge.adv{background:var(--red-dim); color:var(--red);}
+.badge.dur{background:var(--paper); color:var(--ink-soft); border:1px solid var(--line);}
+
+.pill-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;}
+
+/* level path */
+.level{
+  border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); margin-bottom:12px; overflow:hidden;
+}
+.level-head{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer;}
+.level-head h4{margin:0; font-size:14.5px;}
+.level-num{font-family:'JetBrains Mono'; font-size:12px; color:var(--kotlin); font-weight:700; margin-right:10px;}
+.level-body{padding:0 18px 16px 18px; display:none; border-top:1px solid var(--line); padding-top:12px;}
+.level.open .level-body{display:block;}
+.level.open .chev{transform:rotate(90deg);}
+.chev{transition:transform .15s; color:var(--ink-soft);}
+.chip-list{display:flex; flex-wrap:wrap; gap:7px;}
+.chip{
+  font-size:12.6px; padding:5px 11px; border-radius:99px; border:1px solid var(--line); background:var(--paper);
+  display:flex; align-items:center; gap:5px;
+}
+.chip.linkable{border-color:var(--kotlin); color:var(--kotlin); background:var(--kotlin-dim); cursor:pointer; font-weight:600;}
+.chip .dot{width:5px; height:5px; border-radius:50%; background:var(--teal);}
+
+/* lesson page */
+.lesson-header{margin-bottom:26px;}
+.back-link{display:inline-flex; align-items:center; gap:6px; color:var(--ink-soft); font-size:13px; text-decoration:none; margin-bottom:14px; font-weight:600;}
+.back-link:hover{color:var(--kotlin);}
+.lesson-header h1{font-size:26px;}
+.lesson-meta{display:flex; gap:10px; align-items:center; margin-top:8px;}
+
+.section-block{margin-bottom:26px;}
+.section-block h3{font-size:12.5px; text-transform:none; color:var(--kotlin); font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:7px;}
+.section-block h3 .num{font-family:'JetBrains Mono'; background:var(--kotlin-dim); color:var(--kotlin); width:20px; height:20px; border-radius:5px; display:inline-flex; align-items:center; justify-content:center; font-size:11px;}
+.section-block p{margin:0 0 10px 0; color:var(--ink);}
+hr.sep{border:none; border-top:1px solid var(--line); margin:26px 0;}
+
+.codebox{
+  background:var(--code-bg); color:var(--code-ink); border-radius:var(--radius); padding:16px 18px; overflow-x:auto;
+  font-size:13px; line-height:1.65; position:relative; margin-bottom:6px;
+}
+.codebox pre{margin:0; white-space:pre;}
+.copy-btn{
+  position:absolute; top:10px; right:10px; background:#2A2D38; color:#CFD3E0; border:none; border-radius:5px;
+  padding:5px 9px; font-size:11px; font-family:'JetBrains Mono';
+}
+.copy-btn:hover{background:#3A3E4C;}
+.result-box{
+  background:var(--paper); border:1px dashed var(--line); border-radius:var(--radius); padding:16px 18px;
+  font-family:'JetBrains Mono'; font-size:12.5px; white-space:pre; color:var(--ink-soft); overflow-x:auto;
+}
+.explain-list{list-style:none; margin:0; padding:0;}
+.explain-list li{display:flex; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px;}
+.explain-list li:last-child{border-bottom:none;}
+.explain-list code{background:var(--kotlin-dim); color:var(--kotlin); padding:1px 6px; border-radius:4px; font-size:12.5px; flex-shrink:0; height:fit-content;}
+
+.param-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+.param-table th{text-align:left; font-size:11.5px; color:var(--ink-soft); font-weight:600; padding:6px 10px; border-bottom:1px solid var(--line);}
+.param-table td{padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+.param-table td:first-child{font-family:'JetBrains Mono'; color:var(--kotlin); font-size:12.5px; white-space:nowrap;}
+
+.err-item{border:1px solid var(--red-dim); background:#FEFAF9; border-radius:var(--radius); padding:12px 14px; margin-bottom:10px;}
+.err-item .err-head{font-family:'JetBrains Mono'; color:var(--red); font-size:12.5px; margin-bottom:6px; font-weight:700;}
+.err-item .err-fix{font-size:13px; color:var(--ink-soft);}
+
+.exercise-box{border:1px solid var(--amber-dim); background:#FFFCF6; border-radius:var(--radius); padding:16px 18px;}
+.exercise-box summary{cursor:pointer; font-weight:600; color:var(--amber); font-size:13.5px;}
+
+.quiz-box{border:1px solid var(--line); background:var(--panel); border-radius:var(--radius); padding:18px 20px;}
+.quiz-q{font-weight:700; margin-bottom:12px; font-size:14.5px;}
+.quiz-opt{display:block; width:100%; text-align:left; padding:10px 13px; border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); margin-bottom:8px; font-size:13.5px;}
+.quiz-opt:hover{border-color:var(--kotlin);}
+.quiz-opt.correct{background:var(--teal-dim); border-color:var(--teal); color:var(--teal); font-weight:600;}
+.quiz-opt.wrong{background:var(--red-dim); border-color:var(--red); color:var(--red); font-weight:600;}
+.quiz-fb{margin-top:10px; font-size:13.5px; color:var(--ink-soft); display:none;}
+
+.retain-list{list-style:none; margin:0; padding:0;}
+.retain-list li{display:flex; gap:8px; align-items:flex-start; padding:5px 0; font-size:14px;}
+.retain-list li::before{content:"✓"; color:var(--teal); font-weight:700; flex-shrink:0;}
+
+.lesson-nav{display:flex; justify-content:space-between; gap:10px; margin-top:30px;}
+.lesson-nav button{padding:9px 16px; border-radius:var(--radius); border:1px solid var(--line); background:var(--panel); font-size:13px; font-weight:600;}
+.lesson-nav .finish{background:var(--teal); color:#fff; border-color:var(--teal);}
+.lesson-nav .finish.done{background:var(--teal-dim); color:var(--teal);}
+
+.related-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+
+/* comment faire / search */
+.qa-item{border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; gap:12px;}
+.qa-item span{font-size:14px; font-weight:500;}
+.qa-item button{background:none; border:none; color:var(--kotlin); font-weight:700; font-size:13px;}
+
+/* components library */
+.comp-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+.comp-tile{border:1px solid var(--line); background:var(--panel); border-radius:var(--radius); padding:14px; cursor:pointer;}
+.comp-tile:hover{border-color:var(--kotlin);}
+.comp-tile .name{font-family:'JetBrains Mono'; font-weight:700; font-size:13px; color:var(--kotlin);}
+.comp-tile .cat{font-size:11.5px; color:var(--ink-soft); margin-top:3px;}
+
+/* cheatsheet */
+.cheat-card{margin-bottom:20px;}
+.cheat-row{display:flex; justify-content:space-between; gap:14px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13.3px;}
+.cheat-row:last-child{border-bottom:none;}
+.cheat-row code{font-family:'JetBrains Mono'; color:var(--kotlin); font-size:12.5px;}
+.cheat-row span{color:var(--ink-soft); text-align:right; max-width:60%;}
+
+/* glossary */
+.gloss-letter{font-family:'Manrope'; font-weight:800; color:var(--kotlin); font-size:13px; margin:22px 0 8px 0;}
+.gloss-item{padding:9px 0; border-bottom:1px solid var(--line);}
+.gloss-item b{font-family:'JetBrains Mono'; font-size:13.5px;}
+.gloss-item p{margin:3px 0 0 0; font-size:13.3px; color:var(--ink-soft);}
+
+.empty{padding:40px 20px; text-align:center; color:var(--ink-soft); border:1px dashed var(--line); border-radius:var(--radius);}
+.view{display:none;}
+.view.active{display:block;}
+.hidden{display:none !important;}
+
+@media(max-width:820px){
+  .sidebar{position:fixed; left:-260px; top:0; z-index:20; transition:left .18s; box-shadow:0 0 0 9999px rgba(0,0,0,0);}
+  .sidebar.open{left:0; box-shadow:0 0 0 9999px rgba(0,0,0,.35);}
+  .content{padding:24px 18px 90px 18px;}
+  .topbar{padding:12px 16px;}
+  .menu-btn{display:flex !important;}
+}
+.menu-btn{display:none; align-items:center; justify-content:center; width:34px; height:34px; border:1px solid var(--line); background:var(--panel); border-radius:var(--radius); flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">K</div>
+      <div class="brand-text">Apps Mobiles 2<span>Kotlin · Compose · MVVM</span></div>
+    </div>
+
+    <div class="navgroup">
+      <div class="navitem-list" id="mainNav">
+        <button class="navitem active" data-view="dashboard">🏠 Accueil</button>
+        <button class="navitem" data-view="parcours">🧭 Parcours</button>
+        <button class="navitem" data-view="comment">💡 Comment faire ?</button>
+        <button class="navitem" data-view="composants">🧩 Composants</button>
+        <button class="navitem" data-view="cheatsheets">⚡ Cheat Sheets</button>
+        <button class="navitem" data-view="glossaire">📖 Glossaire</button>
+        <button class="navitem" data-view="quiz">📝 Quiz</button>
+        <button class="navitem" data-view="favoris">⭐ Favoris</button>
+      </div>
+    </div>
+
+    <div class="navgroup">
+      <div class="navgroup-label">Leçons</div>
+      <div id="lessonNavList"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <button class="menu-btn" id="menuBtn">☰</button>
+      <div class="searchbox">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="searchInput" placeholder="Rechercher un concept, ex: « faire une liste »…">
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<script>
+/* ======================================================================
+   DONNÉES — chaque leçon suit le format en 13 parties de la spec.
+   Structure pensée pour être étendue facilement (ajouter une entrée).
+   ====================================================================== */
+
+const LESSONS = {
+
+  card: {
+    id:"card", title:"Créer une Card", niveau:2, level:"beg", duration:"10 min",
+    quoi:"Une <b>Card</b> est une boîte visuelle avec une légère élévation, utilisée pour regrouper plusieurs éléments (image, texte, bouton) qui appartiennent ensemble — comme une fiche produit ou un profil.",
+    pourquoi:"Sans Card, tes éléments flottent sans regroupement visuel clair. La Card crée une unité que l'œil identifie immédiatement comme « un seul bloc d'information ».",
+    quand:"Utilise une Card pour : une fiche produit, un profil utilisateur, un élément de liste avec plusieurs infos, une notification.",
+    syntaxe:`Card(
+    modifier = Modifier,
+    elevation = CardDefaults.cardElevation(),
+    shape = RoundedCornerShape(12.dp)
+) {
+    // contenu
+}`,
+    exempleMin:`Card {
+    Text("Bonjour")
+}`,
+    explication:[
+      ["Card {","Ouvre le conteneur. Tout ce qui est à l'intérieur des accolades sera regroupé visuellement."],
+      ["Column {","Empile les enfants verticalement à l'intérieur de la Card."],
+      ["Text(\"Ordinateur\")","Affiche le nom du produit."],
+      ["Button(onClick = {})","Crée un bouton cliquable ; le code entre accolades s'exécute au clic."]
+    ],
+    exempleReel:`Card(
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(12.dp)
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Ordinateur", fontWeight = FontWeight.Bold)
+        Text("999 \$")
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { /* acheter */ }) {
+            Text("Acheter")
+        }
+    }
+}`,
+    resultat:`┌─────────────────────────┐
+│ Ordinateur              │
+│ 999 $                   │
+│                         │
+│  [ Acheter ]            │
+└─────────────────────────┘`,
+    params:[
+      ["modifier","Contrôle taille, marges, clics… (voir Modifier Cheat Sheet)"],
+      ["shape","Forme des coins, ex: RoundedCornerShape(12.dp)"],
+      ["elevation","Hauteur de l'ombre portée"],
+      ["colors","Couleur de fond via CardDefaults.cardColors(...)"]
+    ],
+    erreurs:[
+      ["Le contenu déborde de la Card","Il manque un Modifier.padding() à l'intérieur — la Card ne met pas de marge automatiquement."],
+      ["La Card prend toute la largeur sans le vouloir","fillMaxWidth() a été ajouté par erreur sur le Modifier — retire-le si tu veux une taille automatique."]
+    ],
+    exercice:{
+      enonce:"Crée une Card affichant une recette : nom, temps de préparation, et un bouton « Voir la recette ».",
+      indice:"Utilise Card → Column → deux Text → Button, comme dans l'exemple réel.",
+    },
+    quiz:{
+      q:"Que faut-il ajouter pour éviter que le texte touche les bords d'une Card ?",
+      options:["Modifier.padding() sur le contenu interne","Rien, c'est automatique","elevation plus grande","Une seconde Card"],
+      correct:0,
+      exp:"La Card ne met pas de marge interne par défaut : il faut appliquer un Modifier.padding() sur le Column/Row à l'intérieur."
+    },
+    retenir:["Card regroupe visuellement plusieurs éléments.","Elle n'a pas de padding interne par défaut — ajoute-le toi-même.","On combine presque toujours Card + Column/Row + Modifier.","shape et elevation contrôlent son style."],
+    prereq:["Column","Modifier"], suite:["state","lazycolumn"]
+  },
+
+  lazycolumn: {
+    id:"lazycolumn", title:"Afficher une liste (LazyColumn)", niveau:3, level:"beg", duration:"12 min",
+    quoi:"<b>LazyColumn</b> affiche une liste verticale qui ne crée à l'écran que les éléments visibles, même si la liste contient des milliers d'items.",
+    pourquoi:"Avec un simple Column + verticalScroll, Compose crée TOUS les éléments d'un coup, même ceux hors écran. Pour une longue liste (produits, messages, contacts), ça devient lent. LazyColumn règle ce problème.",
+    quand:"Dès que tu affiches une liste dynamique dont la taille peut être grande ou inconnue : produits, contacts, messages, résultats de recherche.",
+    syntaxe:`LazyColumn {
+    items(maListe) { element ->
+        // un item
+    }
+}`,
+    exempleMin:`LazyColumn {
+    items(produits) { produit ->
+        Text(produit.nom)
+    }
+}`,
+    explication:[
+      ["LazyColumn {","Crée une liste verticale « paresseuse »."],
+      ["items(produits)","Parcourt la liste `produits` et génère un bloc pour chaque élément."],
+      ["{ produit -> ... }","`produit` représente l'élément courant à chaque itération."]
+    ],
+    exempleReel:`LazyColumn(
+    modifier = Modifier.fillMaxSize(),
+    contentPadding = PaddingValues(12.dp),
+    verticalArrangement = Arrangement.spacedBy(8.dp)
+) {
+    items(produits) { produit ->
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(produit.nom, fontWeight = FontWeight.Bold)
+                Text("\${produit.prix} \$")
+            }
+        }
+    }
+}`,
+    resultat:`┌───────────────────┐
+│ Écran              │
+│ 999 $              │
+├───────────────────┤
+│ Clavier            │
+│ 49 $               │
+├───────────────────┤
+│ Souris             │
+│ 25 $               │  ← défile verticalement
+└───────────────────┘`,
+    params:[
+      ["items(list)","Génère un item par élément de la liste"],
+      ["contentPadding","Marge intérieure globale de la liste"],
+      ["verticalArrangement","Espacement entre les items, ex: Arrangement.spacedBy(8.dp)"],
+      ["key = { it.id }","Identifiant stable par item — évite des bugs d'animation/recomposition"]
+    ],
+    erreurs:[
+      ["IllegalStateException: Vertically scrollable component was measured with an infinity height","Une LazyColumn est placée dans un Column avec verticalScroll — les deux gèrent le scroll, ça entre en conflit. Retire le verticalScroll parent."],
+      ["La liste ne s'affiche pas","La liste source est vide au premier rendu, souvent parce que les données arrivent d'une API de façon asynchrone — vérifie l'état de chargement."]
+    ],
+    exercice:{
+      enonce:"Affiche une LazyColumn de 10 tâches (String) avec une Card par tâche.",
+      indice:"items(taches) { tache -> Card { Text(tache) } }"
+    },
+    quiz:{
+      q:"Pourquoi préférer LazyColumn à Column + verticalScroll pour une longue liste ?",
+      options:["LazyColumn ne crée que les items visibles à l'écran","LazyColumn est plus jolie visuellement","Column ne peut pas défiler du tout","Il n'y a pas de différence"],
+      correct:0,
+      exp:"LazyColumn recycle et ne compose que les éléments visibles (+ une marge), ce qui la rend performante même avec des milliers d'items."
+    },
+    retenir:["LazyColumn = liste verticale performante.","items() parcourt une collection.","LazyRow existe pour l'horizontal, LazyVerticalGrid pour les grilles.","Ne jamais imbriquer un scroll vertical dans un autre."],
+    prereq:["Column","Card","Kotlin: List"], suite:["state"]
+  },
+
+  state: {
+    id:"state", title:"Comprendre l'état (State)", niveau:4, level:"mid", duration:"14 min",
+    quoi:"Un <b>état</b> (state) est une valeur qui peut changer avec le temps et dont Compose « se souvient » entre les recompositions — quand elle change, l'interface se redessine automatiquement.",
+    pourquoi:"Une variable Kotlin normale (var compteur = 0) est oubliée à chaque recomposition et ne déclenche aucun rafraîchissement visuel. remember + mutableStateOf permet à Compose de suivre la valeur et de redessiner l'écran quand elle change.",
+    quand:"Dès qu'un élément affiché doit changer suite à une action utilisateur : un compteur, une case cochée, le texte d'un champ, l'ouverture d'un menu.",
+    syntaxe:`var nom by remember { mutableStateOf(valeurInitiale) }`,
+    exempleMin:`var count by remember { mutableStateOf(0) }
+
+Button(onClick = { count++ }) {
+    Text("Cliqué \$count fois")
+}`,
+    explication:[
+      ["remember { ... }","Dit à Compose de conserver cette valeur entre les recompositions (sinon elle repartirait à 0 à chaque redessin)."],
+      ["mutableStateOf(0)","Crée un conteneur d'état observable, initialisé à 0."],
+      ["by","Permet d'utiliser `count` directement comme un Int, sans écrire `count.value`."],
+      ["count++","Modifie l'état → Compose détecte le changement et redessine automatiquement le Text."]
+    ],
+    exempleReel:`@Composable
+fun Compteur() {
+    var count by remember { mutableStateOf(0) }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Total : \$count", fontSize = 22.sp)
+        Row {
+            Button(onClick = { count-- }) { Text("-") }
+            Spacer(modifier = Modifier.width(12.dp))
+            Button(onClick = { count++ }) { Text("+") }
+        }
+    }
+}`,
+    resultat:`Total : 3
+
+  [ - ]      [ + ]`,
+    params:[
+      ["remember","Survit aux recompositions, PAS à une rotation d'écran"],
+      ["rememberSaveable","Comme remember, mais survit aussi à la rotation d'écran"],
+      ["State Hoisting","Faire remonter l'état à un parent pour le partager entre composants"]
+    ],
+    erreurs:[
+      ["Le compteur revient à 0 après une rotation d'écran","remember seul ne survit pas à un changement de configuration — utilise rememberSaveable."],
+      ["Unresolved reference: remember","L'import androidx.compose.runtime.remember (et mutableStateOf) manque."]
+    ],
+    exercice:{
+      enonce:"Crée un interrupteur (Boolean) avec remember qui affiche « Activé » ou « Désactivé » selon sa valeur.",
+      indice:"var actif by remember { mutableStateOf(false) } puis un Switch(checked = actif, onCheckedChange = { actif = it })"
+    },
+    quiz:{
+      q:"Que se passe-t-il si on retire `remember` autour de `mutableStateOf(0)` ?",
+      options:["La valeur repart à 0 à chaque recomposition","Rien ne change","Le code ne compile plus","L'état devient plus rapide"],
+      correct:0,
+      exp:"Sans remember, Compose recrée l'état à chaque recomposition : la valeur est réinitialisée en permanence."
+    },
+    retenir:["State = donnée qui déclenche un redessin quand elle change.","remember conserve la valeur entre recompositions.","rememberSaveable survit aussi à la rotation.","Pour une logique plus complexe, l'état vit dans un ViewModel."],
+    prereq:["Composable de base"], suite:["viewmodel"]
+  },
+
+  viewmodel: {
+    id:"viewmodel", title:"Créer un ViewModel", niveau:4, level:"mid", duration:"15 min",
+    quoi:"Un <b>ViewModel</b> est une classe qui garde et gère les données de l'écran, séparément de l'interface (Compose). Il survit aux rotations d'écran et sépare la logique de l'affichage.",
+    pourquoi:"Tu veux que l'écran d'ajout d'un produit se souvienne de ses données affichées même après une rotation, et tu veux séparer « ce qui affiche » (Compose) de « ce qui décide » (la logique). Sans ViewModel, tout ce code s'entasse dans le Composable et devient difficile à tester.",
+    quand:"Dès qu'un écran a une logique un peu plus riche qu'un simple compteur : chargement de données, appel API, formulaire, liste filtrable.",
+    syntaxe:`class MonViewModel : ViewModel() {
+    private val _etat = MutableStateFlow(EtatInitial)
+    val etat: StateFlow<Etat> = _etat
+
+    fun uneAction() { /* modifie _etat.value */ }
+}`,
+    exempleMin:`class CompteurViewModel : ViewModel() {
+    var count by mutableStateOf(0)
+        private set
+
+    fun incrementer() { count++ }
+}`,
+    explication:[
+      ["class CompteurViewModel : ViewModel()","Hérite de ViewModel — Android sait alors le garder en vie durant les rotations."],
+      ["var count by mutableStateOf(0)","État exposé, lisible par Compose."],
+      ["private set","Empêche l'UI de modifier `count` directement ; seule la fonction incrementer() le peut."],
+      ["fun incrementer()","La seule façon autorisée de changer l'état — logique centralisée, pas dans l'UI."]
+    ],
+    exempleReel:`class CompteurViewModel : ViewModel() {
+    var count by mutableStateOf(0)
+        private set
+
+    fun incrementer() { count++ }
+    fun reinitialiser() { count = 0 }
+}
+
+@Composable
+fun EcranCompteur(viewModel: CompteurViewModel = viewModel()) {
+    Column {
+        Text("Total : \${viewModel.count}")
+        Button(onClick = { viewModel.incrementer() }) {
+            Text("Ajouter")
+        }
+    }
+}`,
+    resultat:`Compose
+   ↓  (appelle des fonctions)
+ViewModel
+   ↓  (contient l'état + la logique)
+Survit à la rotation d'écran ✓`,
+    params:[
+      ["viewModel()","Fonction Compose qui récupère (ou crée) l'instance du ViewModel liée à l'écran"],
+      ["StateFlow","Flux d'état observable, souvent utilisé à la place de mutableStateOf pour exposer l'état"],
+      ["viewModelScope","Portée de coroutine liée au cycle de vie du ViewModel, s'annule automatiquement"]
+    ],
+    erreurs:[
+      ["Cannot create an instance of class X","Le ViewModel a un constructeur avec paramètres (ex: un Repository) — il faut une ViewModelFactory ou Hilt."],
+      ["L'état ne se met pas à jour dans Compose","Le champ n'est pas déclaré avec `by mutableStateOf` ou `StateFlow` collecté avec `.collectAsState()`."]
+    ],
+    exercice:{
+      enonce:"Crée un ViewModel `NomViewModel` avec un champ `nom` (String) et une fonction `mettreAJour(nouveauNom: String)`.",
+      indice:"var nom by mutableStateOf(\"\") ; private set, puis fun mettreAJour(v: String) { nom = v }"
+    },
+    quiz:{
+      q:"Pourquoi utiliser `private set` sur un champ de ViewModel ?",
+      options:["Pour que seul le ViewModel puisse modifier sa propre valeur","Pour cacher la variable de Compose complètement","Pour la rendre plus rapide","C'est obligatoire en Kotlin"],
+      correct:0,
+      exp:"private set autorise la lecture depuis l'extérieur (Compose) mais bloque l'écriture directe — seules les fonctions du ViewModel peuvent modifier l'état, ce qui centralise la logique."
+    },
+    retenir:["ViewModel sépare logique et interface.","Il survit aux rotations d'écran, contrairement à remember seul.","L'UI appelle des fonctions, jamais ne modifie l'état directement.","Il s'intègre dans l'architecture MVVM avec un Repository."],
+    prereq:["state","Kotlin: classes"], suite:["mvvm","room"]
+  },
+
+  mvvm: {
+    id:"mvvm", title:"L'architecture MVVM", niveau:5, level:"mid", duration:"12 min",
+    quoi:"<b>MVVM</b> (Model-View-ViewModel) est une façon d'organiser une app en 3 couches séparées : l'affichage, la logique d'écran, et les données.",
+    pourquoi:"Tu veux séparer ton interface de ta logique pour que le code reste lisible, testable, et que changer la source de données (API ↔ base locale) n'oblige pas à toucher l'interface.",
+    quand:"Sur quasiment toute application Android moderne avec Compose — c'est l'architecture recommandée par Google.",
+    syntaxe:`UI (Compose) → ViewModel → Repository → API / Room`,
+    exempleMin:`// UI observe le ViewModel, le ViewModel appelle le Repository
+class ProduitsViewModel(private val repo: ProduitRepository) : ViewModel() { ... }`,
+    explication:[
+      ["View (Compose)","Affiche l'état et transmet les actions utilisateur (clics, saisies)."],
+      ["ViewModel","Contient l'état de l'écran et la logique de présentation ; appelle le Repository."],
+      ["Repository","Décide où trouver la donnée (API distante, base Room locale, cache) — le ViewModel ne le sait pas."],
+      ["Model","Les data class qui représentent les données (ex: Produit)."]
+    ],
+    exempleReel:`┌─────────────┐
+│     UI      │   affiche l'état, envoie les actions
+│   Compose   │
+└──────┬──────┘
+       ↓
+┌─────────────┐
+│  ViewModel  │   garde l'état de l'écran, appelle le repository
+└──────┬──────┘
+       ↓
+┌─────────────┐
+│ Repository  │   choisit la source de données
+└──────┬──────┘
+       ↓
+ ┌─────┴─────┐
+ ↓           ↓
+API         Room`,
+    resultat:`Chaque couche ne connaît que celle juste en-dessous.
+La UI ne parle jamais directement à l'API ou à Room.`,
+    params:[
+      ["View","Ne contient aucune logique métier, seulement de l'affichage"],
+      ["ViewModel","Ne connaît jamais les détails Compose (pas de Context UI, pas de Modifier)"],
+      ["Repository","Point unique de vérité pour une catégorie de données"]
+    ],
+    erreurs:[
+      ["Le Composable fait un appel API directement","Cela casse la séparation MVVM et rend le code impossible à tester — déplace l'appel dans un Repository, appelé depuis le ViewModel."],
+      ["Le ViewModel importe des classes Compose","Un ViewModel ne devrait dépendre que de Kotlin/Android, jamais d'un Composable précis — garde-le réutilisable."]
+    ],
+    exercice:{
+      enonce:"Dessine (en texte) l'architecture MVVM d'un écran « Liste de recettes » chargées depuis une API.",
+      indice:"Compose → RecetteViewModel → RecetteRepository → RecetteApiService"
+    },
+    quiz:{
+      q:"Dans MVVM, qui est autorisé à appeler directement une API REST ?",
+      options:["Le Repository","La View (Compose)","Le ViewModel","N'importe quelle couche"],
+      correct:0,
+      exp:"Le Repository est l'intermédiaire dédié aux sources de données ; le ViewModel lui délègue, la View ne connaît même pas son existence."
+    },
+    retenir:["MVVM = View / ViewModel / Model, avec un Repository comme intermédiaire.","Chaque couche ne parle qu'à celle juste en-dessous.","Ça rend le code testable et la source de donnée interchangeable.","C'est l'architecture par défaut recommandée pour Compose."],
+    prereq:["viewmodel"], suite:["room","api"]
+  },
+
+  navigation: {
+    id:"navigation", title:"Naviguer entre deux écrans", niveau:8, level:"mid", duration:"13 min",
+    quoi:"La <b>Navigation Compose</b> permet de passer d'un écran à un autre à l'intérieur d'une même application, avec un historique (bouton retour inclus).",
+    pourquoi:"Une application a presque toujours plusieurs écrans (liste → détails, login → accueil). Sans système de navigation, il faudrait gérer manuellement quel écran afficher et l'historique du retour arrière.",
+    quand:"Dès que ton app a plus d'un écran — ce qui est presque toujours le cas.",
+    syntaxe:`val navController = rememberNavController()
+
+NavHost(navController = navController, startDestination = "accueil") {
+    composable("accueil") { EcranAccueil(navController) }
+    composable("details") { EcranDetails() }
+}`,
+    exempleMin:`Button(onClick = { navController.navigate("details") }) {
+    Text("Voir détails")
+}`,
+    explication:[
+      ["rememberNavController()","Crée le contrôleur qui garde l'historique de navigation."],
+      ["NavHost","Le conteneur qui affiche l'écran actif selon la route."],
+      ["composable(\"accueil\")","Associe le mot-clé \"accueil\" à un écran précis."],
+      ["navController.navigate(\"details\")","Change d'écran et ajoute l'ancien à l'historique (pour le bouton retour)."]
+    ],
+    exempleReel:`NavHost(navController, startDestination = "produits") {
+    composable("produits") {
+        EcranProduits(
+            onProduitClic = { id -> navController.navigate("details/\$id") }
+        )
+    }
+    composable(
+        route = "details/{produitId}",
+        arguments = listOf(navArgument("produitId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val id = backStackEntry.arguments?.getInt("produitId")
+        EcranDetails(produitId = id)
+    }
+}`,
+    resultat:`Produits ──clic──▶ Détails (id=15)
+   ▲                      │
+   └──── retour ◀─────────┘`,
+    params:[
+      ["startDestination","La route affichée au lancement de l'app"],
+      ["navController.popBackStack()","Revient à l'écran précédent"],
+      ["navArgument(...)","Déclare un paramètre attendu dans la route (ex: un id)"]
+    ],
+    erreurs:[
+      ["Navigation destination that matches request... cannot be found","La route utilisée dans navigate() ne correspond à aucun composable() déclaré — vérifie l'orthographe exacte."],
+      ["Le bouton retour ne fonctionne pas comme prévu","navigate() a été appelé avec popUpTo mal configuré, ou l'écran n'a pas été ajouté correctement à la pile."]
+    ],
+    exercice:{
+      enonce:"Ajoute une troisième route « profil » et un bouton dans l'écran Accueil qui y navigue.",
+      indice:"composable(\"profil\") { EcranProfil() } puis navController.navigate(\"profil\")"
+    },
+    quiz:{
+      q:"Comment transmet-on un identifiant (ex: id d'un produit) à un autre écran ?",
+      options:["Comme argument dans la route, ex: \"details/{id}\"","Avec une variable globale","Ce n'est pas possible en Compose","Avec un Intent uniquement"],
+      correct:0,
+      exp:"On déclare un paramètre dans la route (\"details/{id}\") et on le lit via backStackEntry.arguments dans l'écran de destination."
+    },
+    retenir:["NavController garde l'historique de navigation.","NavHost affiche l'écran actif selon la route.","On passe des données via des arguments de route.","popBackStack() revient en arrière."],
+    prereq:["Composable de base"], suite:["mvvm"]
+  },
+
+  datastore: {
+    id:"datastore", title:"Sauvegarder une préférence (DataStore)", niveau:6, level:"mid", duration:"14 min",
+    quoi:"<b>DataStore</b> permet de sauvegarder de petites données (préférences) sur l'appareil, de façon à ce qu'elles restent présentes même après avoir fermé l'application.",
+    pourquoi:"Tu veux que le choix du mode sombre reste actif même après avoir fermé puis rouvert l'app. Un simple `var` en mémoire est effacé à la fermeture — DataStore écrit sur le disque.",
+    quand:"Pour toute préférence utilisateur simple : mode sombre, langue, nom d'utilisateur, activer/désactiver les notifications.",
+    syntaxe:`val Context.dataStore by preferencesDataStore(name = "settings")
+
+val CLE_MODE_SOMBRE = booleanPreferencesKey("mode_sombre")`,
+    exempleMin:`// Écrire
+dataStore.edit { it[CLE_MODE_SOMBRE] = true }
+
+// Lire (Flow)
+val modeSombre: Flow<Boolean> =
+    dataStore.data.map { it[CLE_MODE_SOMBRE] ?: false }`,
+    explication:[
+      ["preferencesDataStore(name = ...)","Crée (ou ouvre) le fichier de préférences nommé « settings »."],
+      ["booleanPreferencesKey(...)","Déclare une clé typée pour identifier une valeur précise dans le DataStore."],
+      ["dataStore.edit { ... }","Modifie une valeur ; l'écriture est asynchrone (suspend function)."],
+      ["dataStore.data.map { ... }","Lit les données sous forme de Flow, mis à jour automatiquement à chaque changement."]
+    ],
+    exempleReel:`class PreferencesRepository(private val context: Context) {
+    private val CLE_MODE_SOMBRE = booleanPreferencesKey("mode_sombre")
+
+    val modeSombre: Flow<Boolean> = context.dataStore.data
+        .map { prefs -> prefs[CLE_MODE_SOMBRE] ?: false }
+
+    suspend fun activerModeSombre(actif: Boolean) {
+        context.dataStore.edit { prefs -> prefs[CLE_MODE_SOMBRE] = actif }
+    }
+}`,
+    resultat:`☑ Mode sombre  →  fermer l'app  →  rouvrir l'app  →  ☑ Mode sombre
+(la valeur a persisté sur le disque)`,
+    params:[
+      ["preferencesDataStore","Version simple, clé-valeur, pour des préférences"],
+      ["Proto DataStore","Version typée avec Protocol Buffers, pour des données plus complexes"],
+      ["Flow","Les lectures sont réactives : l'UI se met à jour automatiquement si la valeur change"]
+    ],
+    erreurs:[
+      ["Les valeurs ne persistent pas après fermeture","dataStore.edit{} est un `suspend fun` — s'il est appelé sans coroutine (ex: viewModelScope.launch), l'écriture peut être annulée avant la fin."],
+      ["IllegalStateException: There are multiple DataStores active","Le délégué `by preferencesDataStore(...)` a été déclaré plusieurs fois avec le même nom — il ne doit exister qu'une seule instance par nom de fichier."]
+    ],
+    exercice:{
+      enonce:"Ajoute une clé `stringPreferencesKey(\"langue\")` et des fonctions pour lire/écrire la langue préférée.",
+      indice:"Même structure que modeSombre, avec stringPreferencesKey et une valeur par défaut \"fr\"."
+    },
+    quiz:{
+      q:"Pourquoi utiliser un Flow pour lire une valeur DataStore plutôt qu'une lecture unique ?",
+      options:["Pour que l'UI se mette à jour automatiquement si la valeur change","Parce que c'est obligatoire en Kotlin","Pour aller plus vite","Ce n'est pas recommandé"],
+      correct:0,
+      exp:"Un Flow émet une nouvelle valeur à chaque changement — l'UI observant ce Flow se recompose automatiquement, sans code de rafraîchissement manuel."
+    },
+    retenir:["DataStore sauvegarde des préférences de façon persistante.","Les écritures (edit) sont asynchrones.","Les lectures se font via un Flow, donc réactives.","Un Repository encapsule généralement le DataStore."],
+    prereq:["Kotlin: coroutines","viewmodel"], suite:["room"]
+  },
+
+  room: {
+    id:"room", title:"Créer une base de données (Room)", niveau:6, level:"adv", duration:"18 min",
+    quoi:"<b>Room</b> est une bibliothèque qui simplifie l'utilisation de SQLite pour stocker des données structurées et volumineuses localement sur l'appareil.",
+    pourquoi:"DataStore convient pour quelques préférences simples, mais pas pour des listes structurées (ex: des centaines de produits, de tâches). Room fournit une vraie base de données locale, avec des requêtes typées et sûres.",
+    quand:"Quand tu dois stocker localement une liste structurée que l'utilisateur consulte hors-ligne : tâches, notes, produits favoris, historique.",
+    syntaxe:`@Entity
+data class Produit(@PrimaryKey val id: Int, val nom: String, val prix: Double)
+
+@Dao
+interface ProduitDao {
+    @Query("SELECT * FROM Produit")
+    fun getAll(): Flow<List<Produit>>
+    @Insert
+    suspend fun insert(produit: Produit)
+}`,
+    exempleMin:`@Database(entities = [Produit::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun produitDao(): ProduitDao
+}`,
+    explication:[
+      ["@Entity","Transforme la data class en table de base de données."],
+      ["@PrimaryKey","Désigne la colonne identifiant unique de chaque ligne."],
+      ["@Dao","Interface contenant les requêtes SQL disponibles (Data Access Object)."],
+      ["@Query(\"SELECT * FROM Produit\")","Requête SQL explicite, exécutée et retournée comme Flow réactif."],
+      ["@Database(entities = [...])","Déclare la base de données et les tables qu'elle contient."]
+    ],
+    exempleReel:`@Entity
+data class Produit(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val nom: String,
+    val prix: Double
+)
+
+@Dao
+interface ProduitDao {
+    @Query("SELECT * FROM Produit ORDER BY nom")
+    fun getAll(): Flow<List<Produit>>
+
+    @Insert
+    suspend fun insert(produit: Produit)
+
+    @Delete
+    suspend fun delete(produit: Produit)
+}
+
+@Database(entities = [Produit::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun produitDao(): ProduitDao
+}`,
+    resultat:`Compose → ViewModel → Repository → DAO → Room → Base SQLite locale`,
+    params:[
+      ["@Insert / @Update / @Delete","Opérations d'écriture automatiquement générées par Room"],
+      ["Flow<List<T>>","Les requêtes retournant un Flow se mettent à jour automatiquement quand les données changent"],
+      ["version","Doit être incrémentée à chaque changement de structure des tables (migration)"]
+    ],
+    erreurs:[
+      ["Room cannot verify the data integrity","Le schéma de la base a changé sans migration ni fallbackToDestructiveMigration() — gère une migration ou (en dev) autorise la recréation de la base."],
+      ["Cannot access database on the main thread","Une requête Room a été appelée en dehors d'une coroutine/suspend function — toutes les opérations Room hors Flow doivent être suspend."]
+    ],
+    exercice:{
+      enonce:"Ajoute une requête `@Query(\"SELECT * FROM Produit WHERE prix < :max\")` pour filtrer les produits sous un certain prix.",
+      indice:"fun getSousPrix(max: Double): Flow<List<Produit>>"
+    },
+    quiz:{
+      q:"Que représente l'annotation @Dao ?",
+      options:["Une interface contenant les requêtes disponibles sur une table","Une table de la base de données","Le fichier de configuration de Room","Un type de ViewModel"],
+      correct:0,
+      exp:"@Dao (Data Access Object) regroupe les méthodes de requête (lecture, insertion, suppression) pour une entité donnée."
+    },
+    retenir:["Room = SQLite simplifié avec des requêtes typées.","@Entity = table, @Dao = requêtes, @Database = la base elle-même.","Les Flow rendent les lectures automatiquement réactives.","On accède à Room via un Repository, jamais directement depuis l'UI."],
+    prereq:["Kotlin: data class","viewmodel","mvvm"], suite:["crud"]
+  },
+
+  api: {
+    id:"api", title:"Consommer une API REST", niveau:7, level:"adv", duration:"18 min",
+    quoi:"Une <b>API REST</b> permet à ton application de communiquer avec un serveur distant pour récupérer ou envoyer des données, généralement au format JSON.",
+    pourquoi:"Tu veux récupérer les produits d'une boutique en ligne à jour, sans les coder en dur dans l'app — l'API permet d'aller chercher cette information sur un serveur.",
+    quand:"Dès que ton app a besoin de données qui viennent d'ailleurs ou changent souvent : produits, météo, actualités, comptes utilisateurs.",
+    syntaxe:`interface ApiService {
+    @GET("produits")
+    suspend fun getProduits(): List<ProduitDto>
+}`,
+    exempleMin:`val retrofit = Retrofit.Builder()
+    .baseUrl("https://exemple.com/api/")
+    .addConverterFactory(GsonConverterFactory.create())
+    .build()
+
+val api = retrofit.create(ApiService::class.java)`,
+    explication:[
+      ["interface ApiService","Décrit les appels disponibles sur le serveur, sans écrire le code réseau à la main."],
+      ["@GET(\"produits\")","Indique que cette fonction fait une requête HTTP GET vers /produits."],
+      ["suspend fun","La requête réseau est asynchrone — elle doit être appelée depuis une coroutine."],
+      ["Retrofit.Builder()","Construit le client HTTP configuré avec l'URL de base du serveur."],
+      ["GsonConverterFactory","Convertit automatiquement le JSON reçu en objets Kotlin (data class)."]
+    ],
+    exempleReel:`data class ProduitDto(val id: Int, val nom: String, val prix: Double)
+
+interface ApiService {
+    @GET("produits")
+    suspend fun getProduits(): List<ProduitDto>
+
+    @POST("produits")
+    suspend fun creerProduit(@Body produit: ProduitDto): ProduitDto
+}
+
+class ProduitRepository(private val api: ApiService) {
+    suspend fun recupererProduits(): List<ProduitDto> = api.getProduits()
+}`,
+    resultat:`Application
+     ↓  GET /produits
+  Serveur
+     ↓  JSON
+[{"id":1,"nom":"Laptop","prix":999}]
+     ↓  conversion automatique
+Application (List<ProduitDto>)`,
+    params:[
+      ["@GET / @POST / @PUT / @PATCH / @DELETE","Type de requête HTTP effectuée"],
+      ["@Body","Envoie un objet Kotlin converti en JSON dans le corps de la requête"],
+      ["@Path / @Query","Insère un paramètre dans l'URL, ex: produits/{id}"]
+    ],
+    erreurs:[
+      ["Cleartext HTTP traffic not permitted","L'URL utilise http:// au lieu de https:// — Android bloque le trafic non chiffré par défaut."],
+      ["SocketTimeoutException","Pas de connexion Internet ou serveur trop lent — prévoir un état d'erreur avec bouton « Réessayer »."],
+      ["JsonSyntaxException","Le JSON reçu ne correspond pas à la structure de la data class attendue — vérifie les noms de champs."]
+    ],
+    exercice:{
+      enonce:"Ajoute une fonction @DELETE(\"produits/{id}\") pour supprimer un produit par son identifiant.",
+      indice:"suspend fun supprimer(@Path(\"id\") id: Int)"
+    },
+    quiz:{
+      q:"Pourquoi les fonctions d'un ApiService Retrofit sont-elles marquées `suspend` ?",
+      options:["Car une requête réseau est asynchrone et ne doit pas bloquer le thread principal","Pour accélérer la requête","C'est optionnel","Pour convertir automatiquement le JSON"],
+      correct:0,
+      exp:"Une requête réseau prend du temps ; `suspend` permet de l'exécuter dans une coroutine sans geler l'interface utilisateur."
+    },
+    retenir:["Une API REST échange des données via HTTP, souvent en JSON.","Retrofit décrit les appels via une interface annotée.","Le JSON est converti automatiquement en data class Kotlin.","Toujours gérer les états Loading / Success / Error."],
+    prereq:["Kotlin: coroutines", "state=data class"], suite:["crud"]
+  },
+
+  crud: {
+    id:"crud", title:"Faire un CRUD complet", niveau:6, level:"adv", duration:"16 min",
+    quoi:"<b>CRUD</b> signifie Create, Read, Update, Delete — les quatre opérations de base pour gérer une collection de données (ajouter, afficher, modifier, supprimer).",
+    pourquoi:"Presque toute fonctionnalité de gestion (produits, tâches, contacts) se résume à ces 4 actions. Structurer ton code autour du CRUD te donne un patron réutilisable pour n'importe quelle entité.",
+    quand:"Dès que l'utilisateur doit gérer une liste d'éléments qu'il peut ajouter, consulter, modifier ou retirer — que la source soit Room ou une API.",
+    syntaxe:`interface ProduitDao {
+    @Query("SELECT * FROM Produit") fun getAll(): Flow<List<Produit>>  // Read
+    @Insert suspend fun insert(p: Produit)                              // Create
+    @Update suspend fun update(p: Produit)                              // Update
+    @Delete suspend fun delete(p: Produit)                              // Delete
+}`,
+    exempleMin:`class ProduitViewModel(private val repo: ProduitRepository) : ViewModel() {
+    val produits = repo.getAll()
+    fun ajouter(p: Produit) = viewModelScope.launch { repo.insert(p) }
+}`,
+    explication:[
+      ["getAll() → Read","Récupère toute la liste pour l'affichage (LazyColumn)."],
+      ["insert() → Create","Ajoute un nouvel élément (formulaire d'ajout)."],
+      ["update() → Update","Modifie un élément existant (formulaire d'édition)."],
+      ["delete() → Delete","Retire un élément (souvent avec confirmation via un Dialog)."]
+    ],
+    exempleReel:`class ProduitViewModel(private val repo: ProduitRepository) : ViewModel() {
+    val produits: StateFlow<List<Produit>> =
+        repo.getAll().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun ajouter(nom: String, prix: Double) = viewModelScope.launch {
+        repo.insert(Produit(nom = nom, prix = prix))
+    }
+
+    fun modifier(produit: Produit) = viewModelScope.launch {
+        repo.update(produit)
+    }
+
+    fun supprimer(produit: Produit) = viewModelScope.launch {
+        repo.delete(produit)
+    }
+}`,
+    resultat:`Liste ──ajout──▶ Formulaire ──valider──▶ Liste mise à jour
+  │
+  └──appui long──▶ Confirmation ──supprimer──▶ Liste mise à jour`,
+    params:[
+      ["Écran Liste","Affiche tous les éléments (Read) via LazyColumn"],
+      ["Écran Ajout","Formulaire qui appelle Create"],
+      ["Écran Détails/Édition","Formulaire pré-rempli qui appelle Update"],
+      ["Dialog de confirmation","Protège l'action Delete d'un clic accidentel"]
+    ],
+    erreurs:[
+      ["La liste ne se met pas à jour après un ajout","Le Flow retourné par Room n'a pas été correctement collecté dans le ViewModel (.stateIn ou .collectAsState() manquant côté UI)."],
+      ["Suppression du mauvais élément","La confirmation ne transmet pas l'identifiant exact — toujours passer l'objet ou son id complet au Dialog."]
+    ],
+    exercice:{
+      enonce:"Ajoute une fonction `rechercher(motCle: String)` qui filtre la liste de produits par nom.",
+      indice:"Combine un état `motCle` avec .filter { it.nom.contains(motCle, ignoreCase = true) } sur la liste observée."
+    },
+    quiz:{
+      q:"Quelle lettre du CRUD correspond à la fonction @Query(\"SELECT * FROM Produit\") ?",
+      options:["R — Read","C — Create","U — Update","D — Delete"],
+      correct:0,
+      exp:"SELECT lit des données existantes, ce qui correspond au Read du CRUD."
+    },
+    retenir:["CRUD = Create, Read, Update, Delete.","Chaque opération correspond en général à un écran ou une action précise.","Delete devrait toujours être protégé par une confirmation.","Le même patron s'applique que la source soit Room ou une API."],
+    prereq:["room","viewmodel"], suite:["api"]
+  }
+};
+
+const LEVELS = [
+  {n:1, title:"Fondations", items:["Android Studio","Structure de projet","Kotlin: variables","Conditions & boucles","Fonctions","Classes & data class"], lessons:[]},
+  {n:2, title:"Interface", items:["Composable","Text, Button, Image, Icon","Column, Row, Box","Card","Surface","Modifier"], lessons:["card"]},
+  {n:3, title:"Interface avancée", items:["TextField, Checkbox, Switch","LazyColumn / LazyRow","LazyVerticalGrid","Scaffold, TopAppBar","Dialog, Popup, Snackbar"], lessons:["lazycolumn"]},
+  {n:4, title:"État", items:["remember, mutableStateOf","rememberSaveable","State Hoisting","ViewModel","Flow & coroutines"], lessons:["state","viewmodel"]},
+  {n:5, title:"Architecture", items:["MVVM","Repository","UiState"], lessons:["mvvm"]},
+  {n:6, title:"Données", items:["DataStore","Room, Entity, DAO","CRUD"], lessons:["datastore","room","crud"]},
+  {n:7, title:"API", items:["HTTP, REST, JSON","GET / POST / PUT / DELETE","Models & API Service"], lessons:["api"]},
+  {n:8, title:"Navigation", items:["NavController, NavHost","Routes & arguments","Bottom Navigation"], lessons:["navigation"]},
+  {n:9, title:"Fonctionnalités avancées", items:["Audio","Notifications","Capteurs","Internationalisation"], lessons:[]},
+  {n:10, title:"Projet final", items:["Application de gestion complète : Login, navigation, CRUD, API, Room, DataStore"], lessons:[]}
+];
+
+const COMMENT_FAIRE = [
+  {q:"Comment créer une Card ?", id:"card"},
+  {q:"Comment créer une liste ?", id:"lazycolumn"},
+  {q:"Comment faire défiler une page ?", id:"lazycolumn"},
+  {q:"Comment sauvegarder une préférence ?", id:"datastore"},
+  {q:"Comment créer une base Room ?", id:"room"},
+  {q:"Comment faire un CRUD ?", id:"crud"},
+  {q:"Comment consommer une API ?", id:"api"},
+  {q:"Comment faire un GET ?", id:"api"},
+  {q:"Comment créer un ViewModel ?", id:"viewmodel"},
+  {q:"Comment naviguer entre deux écrans ?", id:"navigation"},
+  {q:"Comment passer un ID à un autre écran ?", id:"navigation"},
+];
+
+// mots-clés → intention → leçons suggérées (recherche par intention, section 48)
+const INTENT_MAP = [
+  {keys:["liste","afficher plusieurs","beaucoup de produits"], ids:["lazycolumn"]},
+  {keys:["sauvegarder","persister","mémoriser"], ids:["datastore","room"]},
+  {keys:["api","serveur","internet","distant"], ids:["api","crud"]},
+  {keys:["changer de page","autre écran","naviguer"], ids:["navigation"]},
+  {keys:["carte","fiche","regrouper"], ids:["card"]},
+  {keys:["compteur","interactif","clic"], ids:["state"]},
+  {keys:["architecture","organiser","structurer"], ids:["mvvm","viewmodel"]},
+  {keys:["ajouter modifier supprimer","gérer une liste"], ids:["crud","room"]},
+];
+
+const CHEATSHEETS = {
+  "Modifier": [
+    ["padding(12.dp)","Marge intérieure"],
+    ["fillMaxWidth()","Prend toute la largeur disponible"],
+    ["fillMaxSize()","Prend toute la largeur et hauteur"],
+    ["size(48.dp)","Taille fixe (largeur + hauteur)"],
+    ["background(Color.White)","Couleur de fond"],
+    ["clip(RoundedCornerShape(8.dp))","Découpe selon une forme"],
+    ["clickable { }","Rend l'élément cliquable"],
+    ["weight(1f)","Répartit l'espace dans un Row/Column"],
+    ["verticalScroll(rememberScrollState())","Active le défilement vertical"],
+  ],
+  "Kotlin": [
+    ["val","Variable non réassignable (constante)"],
+    ["var","Variable réassignable"],
+    ["data class","Classe conçue pour représenter des données"],
+    ["?", "Type nullable, ex: String?"],
+    ["?.","Appel sécurisé si la valeur n'est pas null"],
+    ["?:","Valeur par défaut si null (elvis operator)"],
+    ["!!","Force le déballage (risque de crash si null)"],
+    ["suspend fun","Fonction pouvant être appelée depuis une coroutine"],
+  ],
+  "Compose": [
+    ["@Composable","Marque une fonction comme composant d'UI"],
+    ["remember { }","Conserve une valeur entre recompositions"],
+    ["mutableStateOf(x)","Crée un état observable"],
+    ["LazyColumn / LazyRow","Liste performante verticale / horizontale"],
+    ["Scaffold","Structure de base d'un écran (TopBar, contenu, FAB)"],
+    ["NavHost / NavController","Système de navigation entre écrans"],
+  ]
+};
+
+const GLOSSARY = [
+  ["API","Interface qui permet à une application de communiquer avec un serveur."],
+  ["CRUD","Create, Read, Update, Delete — les 4 opérations de base sur des données."],
+  ["Composable","Fonction Kotlin annotée @Composable qui décrit un morceau d'interface."],
+  ["Coroutine","Mécanisme Kotlin pour exécuter du code asynchrone sans bloquer le thread principal."],
+  ["DAO","Data Access Object — interface qui regroupe les requêtes Room sur une table."],
+  ["data class","Classe Kotlin conçue pour représenter une donnée (génère equals, toString, etc.)."],
+  ["DataStore","Solution Android pour sauvegarder de petites préférences de façon persistante."],
+  ["Entity","Classe annotée @Entity qui représente une table Room."],
+  ["Flow","Flux de données asynchrone qui peut émettre plusieurs valeurs dans le temps."],
+  ["JSON","Format texte standard pour échanger des données structurées."],
+  ["Model","data class représentant une donnée de l'application (ex: Produit, User)."],
+  ["Modifier","Objet Compose pour configurer taille, marges, clics, etc. d'un composant."],
+  ["MVVM","Architecture séparant View, ViewModel et Model, reliés par un Repository."],
+  ["Repository","Couche qui décide où trouver une donnée (API, Room, cache)."],
+  ["Room","Bibliothèque Android qui simplifie l'usage de SQLite."],
+  ["State","Valeur observable par Compose ; son changement déclenche un redessin."],
+  ["StateFlow","Flow spécialisé qui garde toujours une valeur courante, souvent utilisé dans un ViewModel."],
+  ["ViewModel","Classe qui garde l'état et la logique d'un écran, survit aux rotations."],
+];
+
+const COMPONENTS = [
+  ["Text","Affichage"],["Button","Interaction"],["IconButton","Interaction"],
+  ["TextField","Saisie"],["OutlinedTextField","Saisie"],["Checkbox","Saisie"],
+  ["Switch","Saisie"],["Slider","Saisie"],["Card","Conteneur"],["Surface","Conteneur"],
+  ["Image","Média"],["Icon","Média"],["Column","Layout"],["Row","Layout"],
+  ["Box","Layout"],["Spacer","Layout"],["Divider","Layout"],["LazyColumn","Liste"],
+  ["LazyRow","Liste"],["LazyVerticalGrid","Liste"],["Scaffold","Structure"],
+  ["TopAppBar","Structure"],["NavigationBar","Structure"],["Dialog","Popup"],
+  ["AlertDialog","Popup"],["DropdownMenu","Popup"],["Snackbar","Popup"],
+  ["CircularProgressIndicator","État"]
+];
+
+/* ======================================================================
+   ÉTAT (en mémoire pour la session — pas de stockage navigateur)
+   ====================================================================== */
+const APP = {
+  completed:new Set(),
+  favorites:new Set(),
+  currentView:"dashboard",
+  currentLesson:null,
+};
+
+function lessonOrder(){ return Object.keys(LESSONS); }
+
+/* ======================================================================
+   NAVIGATION SIDEBAR
+   ====================================================================== */
+function buildSidebarLessons(){
+  const el = document.getElementById('lessonNavList');
+  el.innerHTML = "";
+  lessonOrder().forEach(id=>{
+    const l = LESSONS[id];
+    const btn = document.createElement('button');
+    btn.className = "navitem";
+    btn.dataset.lesson = id;
+    const dot = APP.completed.has(id) ? "✓" : "○";
+    btn.innerHTML = `<span style="width:14px;display:inline-block;color:var(--teal);font-family:'JetBrains Mono';font-size:11px;">${dot}</span> ${l.title}`;
+    btn.onclick = ()=>openLesson(id);
+    el.appendChild(btn);
+  });
+}
+
+document.getElementById('mainNav').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.navitem');
+  if(!btn) return;
+  setActiveNav(btn);
+  renderView(btn.dataset.view);
+});
+
+function setActiveNav(activeEl){
+  document.querySelectorAll('.navitem').forEach(b=>b.classList.remove('active'));
+  if(activeEl) activeEl.classList.add('active');
+}
+
+document.getElementById('menuBtn').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* ======================================================================
+   RENDER: DASHBOARD
+   ====================================================================== */
+function renderDashboard(){
+  const total = lessonOrder().length;
+  const done = APP.completed.size;
+  const pct = Math.round((done/total)*100) || 0;
+
+  return `
+    <div class="eyebrow-free-title">
+      <h1>Apprendre Apps Mobiles 2</h1>
+      <p class="sub">Kotlin + Jetpack Compose + Architecture Android</p>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+        <strong>Votre progression</strong>
+        <span class="mono" style="color:var(--kotlin); font-weight:700;">${pct}%</span>
+      </div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div style="font-size:12.5px; color:var(--ink-soft);">${done} / ${total} leçons terminées</div>
+    </div>
+
+    <h3 style="font-size:13px; color:var(--ink-soft); text-transform:none; margin-bottom:10px;">Continuer l'apprentissage</h3>
+    <div class="grid2" id="dashLessons"></div>
+
+    <hr class="sep">
+    <h3 style="font-size:13px; color:var(--ink-soft); margin-bottom:10px;">Que veux-tu faire ?</h3>
+    <div class="pill-row" id="quickActions"></div>
+  `;
+}
+
+function afterDashboardRender(){
+  const wrap = document.getElementById('dashLessons');
+  lessonOrder().slice(0,4).forEach(id=>{
+    const l = LESSONS[id];
+    const done = APP.completed.has(id);
+    const div = document.createElement('div');
+    div.className = "card course-card";
+    div.innerHTML = `
+      <h4>${l.title}</h4>
+      <div class="meta">${badgeHTML(l.level)} · ${l.duration}</div>
+      <div class="bar"><i style="width:${done?100:0}%"></i></div>
+      <button class="go-btn">${done?'Revoir':'Continuer'}</button>
+    `;
+    div.querySelector('.go-btn').onclick = ()=>openLesson(id);
+    wrap.appendChild(div);
+  });
+
+  const qa = document.getElementById('quickActions');
+  const acts = [
+    ["Créer une liste","lazycolumn"],["Créer une Card","card"],["Créer une API","api"],
+    ["Sauvegarder des données","datastore"],["Créer une navigation","navigation"],
+    ["Faire un CRUD","crud"],["Créer une base de données","room"]
+  ];
+  acts.forEach(([label,id])=>{
+    const b = document.createElement('button');
+    b.className = "chip linkable";
+    b.textContent = label;
+    b.onclick = ()=>openLesson(id);
+    qa.appendChild(b);
+  });
+}
+
+/* ======================================================================
+   RENDER: PARCOURS
+   ====================================================================== */
+function renderParcours(){
+  let html = `<div class="eyebrow-free-title"><h1>Parcours d'apprentissage</h1><p class="sub">10 niveaux, du premier projet Android jusqu'au projet final.</p></div>`;
+  LEVELS.forEach(lv=>{
+    const doneCount = lv.lessons.filter(id=>APP.completed.has(id)).length;
+    html += `
+      <div class="level" data-lvl="${lv.n}">
+        <div class="level-head">
+          <h4><span class="level-num">N${lv.n}</span>${lv.title}</h4>
+          <span class="chev">›</span>
+        </div>
+        <div class="level-body">
+          <div class="chip-list">
+            ${lv.items.map(it=>{
+              const linked = lv.lessons.find(id=>LESSONS[id].title.toLowerCase().includes(it.toLowerCase().split(' ')[0].toLowerCase()));
+              return `<span class="chip">${APP.completed.has(linked)?'<span class=\"dot\"></span>':''}${it}</span>`;
+            }).join('')}
+          </div>
+          ${lv.lessons.length ? `<div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">${lv.lessons.map(id=>`<button class="chip linkable" data-open="${id}">📘 ${LESSONS[id].title}</button>`).join('')}</div>` : `<div style="margin-top:10px; font-size:12.5px; color:var(--ink-soft);">Contenu à venir dans cette version.</div>`}
+        </div>
+      </div>`;
+  });
+  return html;
+}
+
+function afterParcoursRender(){
+  document.querySelectorAll('.level-head').forEach(h=>{
+    h.onclick = ()=>h.parentElement.classList.toggle('open');
+  });
+  document.querySelectorAll('[data-open]').forEach(b=>{
+    b.onclick = (e)=>{e.stopPropagation(); openLesson(b.dataset.open);};
+  });
+  // ouvrir le premier niveau contenant une leçon
+  document.querySelector('.level')?.classList.add('open');
+}
+
+/* ======================================================================
+   RENDER: COMMENT FAIRE
+   ====================================================================== */
+function renderComment(){
+  let html = `<div class="eyebrow-free-title"><h1>Comment faire ?</h1><p class="sub">Trouve directement la solution pratique dont tu as besoin.</p></div>`;
+  COMMENT_FAIRE.forEach(item=>{
+    html += `<div class="qa-item"><span>${item.q}</span><button data-open="${item.id}">Voir →</button></div>`;
+  });
+  return html;
+}
+function afterCommentRender(){
+  document.querySelectorAll('.qa-item [data-open]').forEach(b=> b.onclick = ()=>openLesson(b.dataset.open));
+}
+
+/* ======================================================================
+   RENDER: COMPOSANTS
+   ====================================================================== */
+function renderComposants(){
+  let html = `<div class="eyebrow-free-title"><h1>Bibliothèque de composants</h1><p class="sub">Les composants Jetpack Compose les plus utilisés.</p></div><div class="comp-grid">`;
+  COMPONENTS.forEach(([name,cat])=>{
+    const hasLesson = name==="Card" ? "card" : (name==="LazyColumn" ? "lazycolumn" : null);
+    html += `<div class="comp-tile" ${hasLesson?`data-open="${hasLesson}"`:''}><div class="name">${name}</div><div class="cat">${cat}</div></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+function afterComposantsRender(){
+  document.querySelectorAll('.comp-tile[data-open]').forEach(t=> t.onclick=()=>openLesson(t.dataset.open));
+}
+
+/* ======================================================================
+   RENDER: CHEAT SHEETS
+   ====================================================================== */
+function renderCheatsheets(){
+  let html = `<div class="eyebrow-free-title"><h1>Cheat Sheets</h1><p class="sub">Référence rapide, sans détour.</p></div>`;
+  Object.entries(CHEATSHEETS).forEach(([title,rows])=>{
+    html += `<div class="card cheat-card"><h4 style="margin-bottom:10px;">${title}</h4>`;
+    rows.forEach(([c,d])=>{
+      html += `<div class="cheat-row"><code>${escapeHTML(c)}</code><span>${d}</span></div>`;
+    });
+    html += `</div>`;
+  });
+  return html;
+}
+
+/* ======================================================================
+   RENDER: GLOSSAIRE
+   ====================================================================== */
+function renderGlossaire(){
+  let html = `<div class="eyebrow-free-title"><h1>Glossaire</h1><p class="sub">Tous les termes techniques du cours, définis simplement.</p></div>`;
+  const sorted = [...GLOSSARY].sort((a,b)=>a[0].localeCompare(b[0]));
+  let lastLetter = "";
+  sorted.forEach(([term,def])=>{
+    const letter = term[0].toUpperCase();
+    if(letter!==lastLetter){ html += `<div class="gloss-letter">${letter}</div>`; lastLetter = letter; }
+    html += `<div class="gloss-item"><b>${term}</b><p>${def}</p></div>`;
+  });
+  return html;
+}
+
+/* ======================================================================
+   RENDER: QUIZ (mode révision — pioche parmi toutes les leçons)
+   ====================================================================== */
+function renderQuiz(){
+  let html = `<div class="eyebrow-free-title"><h1>Quiz</h1><p class="sub">Teste ta compréhension, une question à la fois.</p></div><div id="quizArea"></div>`;
+  return html;
+}
+function afterQuizRender(){
+  const ids = lessonOrder();
+  let idx = 0;
+  const area = document.getElementById('quizArea');
+  function showQ(){
+    const l = LESSONS[ids[idx % ids.length]];
+    area.innerHTML = quizBoxHTML(l, true);
+    bindQuizBox(area, l);
+  }
+  showQ();
+}
+
+/* ======================================================================
+   RENDER: FAVORIS
+   ====================================================================== */
+function renderFavoris(){
+  let html = `<div class="eyebrow-free-title"><h1>Mes favoris</h1></div>`;
+  if(APP.favorites.size===0){
+    html += `<div class="empty">Aucun favori pour l'instant. Ouvre une leçon et clique sur ⭐ pour l'ajouter ici.</div>`;
+    return html;
+  }
+  html += `<div class="grid2">`;
+  APP.favorites.forEach(id=>{
+    const l = LESSONS[id];
+    html += `<div class="card course-card"><h4>${l.title}</h4><div class="meta">${badgeHTML(l.level)}</div><button class="go-btn" data-open="${id}">Ouvrir</button></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+function afterFavorisRender(){
+  document.querySelectorAll('#content [data-open]').forEach(b=> b.onclick=()=>openLesson(b.dataset.open));
+}
+
+/* ======================================================================
+   RENDER: LEÇON (format en 13 parties)
+   ====================================================================== */
+function renderLesson(id){
+  const l = LESSONS[id];
+  const isFav = APP.favorites.has(id);
+  const isDone = APP.completed.has(id);
+  const order = lessonOrder();
+  const pos = order.indexOf(id);
+  const prevId = order[pos-1], nextId = order[pos+1];
+
+  return `
+    <div class="lesson-header">
+      <a class="back-link" id="backLink">← Retour au parcours</a>
+      <h1>${l.title}</h1>
+      <div class="lesson-meta">
+        ${badgeHTML(l.level)}
+        <span class="badge dur">⏱ ${l.duration}</span>
+        <button class="go-btn" id="favBtn" style="margin-left:auto;">${isFav?'★ En favoris':'☆ Ajouter aux favoris'}</button>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">1</span>Qu'est-ce que c'est ?</h3>
+      <p>${l.quoi}</p>
+    </div>
+    <div class="section-block">
+      <h3><span class="num">2</span>Pourquoi l'utiliser ?</h3>
+      <p>${l.pourquoi}</p>
+    </div>
+    <div class="section-block">
+      <h3><span class="num">3</span>Quand l'utiliser ?</h3>
+      <p>${l.quand}</p>
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">4</span>Syntaxe</h3>
+      ${codeBoxHTML(l.syntaxe)}
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">5</span>Exemple minimal</h3>
+      ${codeBoxHTML(l.exempleMin)}
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">6</span>Explication ligne par ligne</h3>
+      <ul class="explain-list">
+        ${l.explication.map(([code,exp])=>`<li><code>${escapeHTML(code)}</code><span>${exp}</span></li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">7</span>Exemple réel</h3>
+      ${codeBoxHTML(l.exempleReel)}
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">8</span>Résultat</h3>
+      <div class="result-box">${escapeHTML(l.resultat)}</div>
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">9</span>Paramètres importants</h3>
+      <table class="param-table">
+        <tr><th>Paramètre</th><th>Rôle</th></tr>
+        ${l.params.map(([p,d])=>`<tr><td>${escapeHTML(p)}</td><td>${d}</td></tr>`).join('')}
+      </table>
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">10</span>Erreurs fréquentes</h3>
+      ${l.erreurs.map(([err,fix])=>`<div class="err-item"><div class="err-head">⚠ ${escapeHTML(err)}</div><div class="err-fix">${fix}</div></div>`).join('')}
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">11</span>Exercice</h3>
+      <details class="exercise-box">
+        <summary>🧪 ${l.exercice.enonce}</summary>
+        <p style="margin-top:12px; font-size:13.3px; color:var(--ink-soft);"><b>Indice :</b> ${l.exercice.indice}</p>
+      </details>
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">12</span>Quiz</h3>
+      <div id="lessonQuizWrap">${quizBoxHTML(l,false)}</div>
+    </div>
+
+    <div class="section-block">
+      <h3><span class="num">13</span>À retenir</h3>
+      <ul class="retain-list">${l.retenir.map(r=>`<li>${r}</li>`).join('')}</ul>
+    </div>
+
+    ${(l.prereq||l.suite) ? `
+    <hr class="sep">
+    <div class="grid2">
+      ${l.prereq ? `<div><h4 style="font-size:12.5px;color:var(--ink-soft);">Prérequis</h4><div class="related-row">${l.prereq.map(p=>`<span class="chip">${p}</span>`).join('')}</div></div>`:''}
+      ${l.suite ? `<div><h4 style="font-size:12.5px;color:var(--ink-soft);">Après cette leçon</h4><div class="related-row">${l.suite.map(sid=>LESSONS[sid]?`<button class="chip linkable" data-open="${sid}">${LESSONS[sid].title}</button>`:'').join('')}</div></div>`:''}
+    </div>`:''}
+
+    <div class="lesson-nav">
+      <button id="prevBtn" ${!prevId?'disabled style="opacity:.4"':''}>← ${prevId?LESSONS[prevId].title:'Précédent'}</button>
+      <button id="finishBtn" class="finish ${isDone?'done':''}">${isDone?'✓ Terminé':'Terminer ✓'}</button>
+      <button id="nextBtn" ${!nextId?'disabled style="opacity:.4"':''}>${nextId?LESSONS[nextId].title:'Suivant'} →</button>
+    </div>
+  `;
+}
+
+function afterLessonRender(id){
+  document.getElementById('backLink').onclick = ()=>{ setActiveNav(document.querySelector('[data-view="parcours"]')); renderView('parcours'); };
+  document.getElementById('favBtn').onclick = (e)=>{
+    if(APP.favorites.has(id)) APP.favorites.delete(id); else APP.favorites.add(id);
+    openLesson(id);
+  };
+  document.getElementById('finishBtn').onclick = ()=>{
+    if(APP.completed.has(id)) APP.completed.delete(id); else APP.completed.add(id);
+    buildSidebarLessons();
+    openLesson(id);
+  };
+  const order = lessonOrder(); const pos = order.indexOf(id);
+  const prevBtn = document.getElementById('prevBtn'); const nextBtn = document.getElementById('nextBtn');
+  if(prevBtn && order[pos-1]) prevBtn.onclick = ()=>openLesson(order[pos-1]);
+  if(nextBtn && order[pos+1]) nextBtn.onclick = ()=>openLesson(order[pos+1]);
+  document.querySelectorAll('[data-open]').forEach(b=> b.onclick = ()=>openLesson(b.dataset.open));
+  bindQuizBox(document.getElementById('lessonQuizWrap'), LESSONS[id]);
+  bindCopyButtons();
+}
+
+/* ======================================================================
+   HELPERS
+   ====================================================================== */
+function badgeHTML(level){
+  const map = {beg:["🟢 Débutant","beg"], mid:["🟡 Intermédiaire","mid"], adv:["🔴 Avancé","adv"]};
+  const [label,cls] = map[level] || map.beg;
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function escapeHTML(s){ return (s||"").replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function codeBoxHTML(code){
+  return `<div class="codebox"><button class="copy-btn" data-code="${encodeURIComponent(code)}">Copier</button><pre>${escapeHTML(code)}</pre></div>`;
+}
+function bindCopyButtons(){
+  document.querySelectorAll('.copy-btn').forEach(b=>{
+    b.onclick = ()=>{
+      const text = decodeURIComponent(b.dataset.code);
+      navigator.clipboard?.writeText(text).catch(()=>{});
+      const old = b.textContent; b.textContent = "Copié ✓";
+      setTimeout(()=>b.textContent=old, 1200);
+    };
+  });
+}
+function quizBoxHTML(l, showTitle){
+  return `<div class="quiz-box">
+    ${showTitle?`<div style="font-size:11.5px;color:var(--ink-soft); margin-bottom:6px;">${l.title}</div>`:''}
+    <div class="quiz-q">${l.quiz.q}</div>
+    ${l.quiz.options.map((o,i)=>`<button class="quiz-opt" data-i="${i}">${o}</button>`).join('')}
+    <div class="quiz-fb" id="quizFb-${l.id}"></div>
+  </div>`;
+}
+function bindQuizBox(container, l){
+  if(!container) return;
+  container.querySelectorAll('.quiz-opt').forEach(opt=>{
+    opt.onclick = ()=>{
+      const i = parseInt(opt.dataset.i);
+      const opts = container.querySelectorAll('.quiz-opt');
+      opts.forEach(o=>o.disabled=true);
+      if(i===l.quiz.correct){ opt.classList.add('correct'); }
+      else { opt.classList.add('wrong'); opts[l.quiz.correct].classList.add('correct'); }
+      const fb = container.querySelector('.quiz-fb');
+      fb.style.display='block';
+      fb.textContent = (i===l.quiz.correct ? "✓ Exact — " : "✗ Pas tout à fait — ") + l.quiz.exp;
+    };
+  });
+}
+
+/* ======================================================================
+   SEARCH — mots-clés directs + recherche par intention
+   ====================================================================== */
+function runSearch(query){
+  query = query.trim().toLowerCase();
+  if(!query) return null;
+  // 1. correspondance directe sur titre de leçon
+  for(const id of lessonOrder()){
+    if(LESSONS[id].title.toLowerCase().includes(query)) return [id];
+  }
+  // 2. correspondance sur "Comment faire"
+  for(const item of COMMENT_FAIRE){
+    if(item.q.toLowerCase().includes(query)) return [item.id];
+  }
+  // 3. intention (contient un des mots-clés)
+  for(const intent of INTENT_MAP){
+    if(intent.keys.some(k=>query.includes(k) || k.includes(query))){
+      return intent.ids;
+    }
+  }
+  return [];
+}
+
+document.getElementById('searchInput').addEventListener('keydown', (e)=>{
+  if(e.key !== 'Enter') return;
+  const results = runSearch(e.target.value);
+  if(!results){ return; }
+  if(results.length===0){
+    alert("Aucun résultat. Essaie : « faire une liste », « sauvegarder une donnée », « api », « changer de page »…");
+    return;
+  }
+  openLesson(results[0]);
+  e.target.value = "";
+});
+
+/* ======================================================================
+   ROUTER
+   ====================================================================== */
+function renderView(view){
+  APP.currentView = view; APP.currentLesson = null;
+  const content = document.getElementById('content');
+  let html = "";
+  if(view==="dashboard") html = renderDashboard();
+  else if(view==="parcours") html = renderParcours();
+  else if(view==="comment") html = renderComment();
+  else if(view==="composants") html = renderComposants();
+  else if(view==="cheatsheets") html = renderCheatsheets();
+  else if(view==="glossaire") html = renderGlossaire();
+  else if(view==="quiz") html = renderQuiz();
+  else if(view==="favoris") html = renderFavoris();
+  content.innerHTML = html;
+
+  if(view==="dashboard") afterDashboardRender();
+  else if(view==="parcours") afterParcoursRender();
+  else if(view==="comment") afterCommentRender();
+  else if(view==="composants") afterComposantsRender();
+  else if(view==="quiz") afterQuizRender();
+  else if(view==="favoris") afterFavorisRender();
+
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo(0,0);
+}
+
+function openLesson(id){
+  if(!LESSONS[id]) return;
+  APP.currentView = "lesson"; APP.currentLesson = id;
+  setActiveNav(document.querySelector(`[data-lesson="${id}"]`));
+  document.getElementById('content').innerHTML = renderLesson(id);
+  afterLessonRender(id);
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo(0,0);
+}
+
+/* ======================================================================
+   INIT
+   ====================================================================== */
+buildSidebarLessons();
+renderView('dashboard');
+</script>
+</body>
+</html>
